@@ -1,9 +1,41 @@
 # Thing
 
-This repository is Thing. Its present tree is Thing 1, kept running for live
-consumers until each ports; Thing 2.0 is built here (`docs/thing2-target.md`).
-The Thing 1 renderer repos are archived under their Eve names: EveUnity,
-EveFlutter, EveElectron, EveTui, EvePlugins and EveConformance.
+This repository is Thing (the Eve display, control and sensor edge for GameCult
+apps). Its present tree is Thing 1, kept running for live consumers until each
+ports; Thing 2.0 is built here (`docs/thing2-target.md`). The Thing 1 renderer
+repos are archived under their Eve names: EveUnity, EveFlutter, EveElectron,
+EveTui, EvePlugins and EveConformance.
+
+## Start Here
+
+Value: services publish a surface once, as a typed retained document
+(`gamecult.eve.surface.v1`), and every runtime lowers it locally. Providers keep
+authority over state and commands; Eve owns projection, input capture and
+timestamped sensor publication.
+
+Problem: without a shared surface contract, each service hand-builds its own
+dashboard and each renderer re-implements layout, binding and commands.
+
+Live (Thing 1):
+
+- `packages/org.gamecult.eve.surface`: renderer-neutral C# surface contract and
+  composition builders; tests in `tests/GameCult.Eve.Surface.Serialization.Tests`.
+- `packages/eve-contracts`: TypeScript types and validators generated from
+  `schemas/` (`npm run generate`, `npm test`).
+- `packages/eve-browser-lowering`: browser DOM/CSS lowering of surface documents
+  (`npm test`).
+- `web/`: browser reference oracle (`web/index.html`, `web/eve-dsl.js`; tests
+  with `node --test web/eve-dsl.test.mjs`).
+- `docs/surface-contract-v1.md`: the contract. `docs/repo-strategy.md`: repo
+  ownership. `docs/parity-testing-harness.md` with
+  `scripts/run-parity-harness.ps1`: parity runs.
+- `android/` and `Sources/` (iOS Theos app, `make package`): native proof
+  clients; build steps under Build Shape below.
+
+Planned (Thing 2.0, in progress): `crates/thing-contract` is the first Rust
+piece. The layout solver, text, accessibility tree, closed render-command list
+and thin backends described in `docs/thing2-target.md` and `docs/thing2-map.md`
+are not built yet; `docs/thing-campaign.md` holds the rename plan.
 
 CultMesh-based surface web, portable control layer, and timestamped sensor
 edge.
@@ -214,11 +246,8 @@ render:
 
 ## VoidBot CEF Stream
 
-Start the Starfire relay from `E:\Projects\VoidBot`:
-
-```powershell
-npm run swarm:eve-cef-relay -- --width 1620 --height 2160 --scale 2 --port 8792
-```
+The CEF relay that produced these frames is not in VoidBot's default branch, so
+no relay command is documented here until one exists.
 
 EveCanvas displays binary JPEG frames and returns touch events only when a
 stream lowering is configured through `EVE_STREAM_URLS`. The native app no
@@ -226,12 +255,11 @@ longer guesses a Starfire relay address.
 
 ## Mimir Sensor Uplink
 
-Start Mimir with `config/mimir-runtime.raven-eve.example.json` or run the
-receiver processes directly:
+Run the receiver processes from a Mimir checkout (a sibling `..\Mimir` here):
 
 ```powershell
-dotnet run --project E:\Projects\Mimir\src\Mimir.EveSensorReceiver\Mimir.EveSensorReceiver.csproj -- --port 8793 --path /eve/camera --source-id eve-camera --type video-frame
-dotnet run --project E:\Projects\Mimir\src\Mimir.EveSensorReceiver\Mimir.EveSensorReceiver.csproj -- --port 8794 --path /eve/mic --source-id eve-mic --type audio-block
+dotnet run --project ..\Mimir\src\Mimir.EveSensorReceiver\Mimir.EveSensorReceiver.csproj -- --port 8793 --path /eve/camera --source-id eve-camera --type video-frame
+dotnet run --project ..\Mimir\src\Mimir.EveSensorReceiver\Mimir.EveSensorReceiver.csproj -- --port 8794 --path /eve/mic --source-id eve-mic --type audio-block
 ```
 
 EveCanvas sends binary `mimir.eve_media_observation.v1` camera and microphone
@@ -245,7 +273,7 @@ guess receiver URLs.
 Start the dashboard authority on Starfire:
 
 ```powershell
-dotnet run --project E:\Projects\Mimir\src\Mimir.EveDashboard\Mimir.EveDashboard.csproj -- --port 8795
+dotnet run --project ..\Mimir\src\Mimir.EveDashboard\Mimir.EveDashboard.csproj -- --port 8795
 ```
 
 EveCanvas connects to the Mimir dashboard WebSocket lowering for native retained
