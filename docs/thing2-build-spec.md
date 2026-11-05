@@ -94,7 +94,7 @@ in thousand lines of owned code (excluding goldens), pressure not metric.
 
 | # | Cut | Waits on | Est. | Parallel with |
 | --- | --- | --- | --- | --- |
-| 1a/1b | contract-ts, contract-cs (specs `thing2:cut_spec:cut-contract-*.r2`) | contract-rs (landed `6ae2da0`) | mapped | each other |
+| 1a/1b | contract-ts, contract-cs (specs `thing2:cut_spec:cut-contract-ts.r3`, `-cs.r3`) | contract-rs (landed `6ae2da0`) | mapped | each other |
 | 1x | cross-store check | 1a, 1b | 0.3 | 2 |
 | 2 | testkit + ports | contract-rs | 1.2 | 1a, 1b |
 | 3 | resolve | 2 | 1.8 | - |
@@ -208,8 +208,9 @@ smokes, and end-to-end Verse contract runs; every piece below names which layer.
   clear law: contract round-trip (exists), `resolve` never panics and either
   returns a tree whose ids are unique or a refusal, `bind` is idempotent for the
   same state, `frame` with no events and unchanged state returns an equal command
-  list (stability). Fuzzing the decoder (`cargo-fuzz` [background]) is deferred
-  until `decode-stack-safety` lands (the decode hazard is CultLib's, map P20).
+  list (stability). Fuzzing the decoder (`cargo-fuzz` [background]) waits only on Eve taking the
+  CultLib pin that carries `decode-stack-safety` (Fixed, CultLib `bbb98eaf`,
+  `cultlib-gaps:resolution:follow_up.decode-stack-safety.n1`; map P20).
 
 Prior art: golden command lists are not published by any project read (R-F §2.5:
 "not found, not searched exhaustively"), so this is the least-supported decision
@@ -238,7 +239,7 @@ no caller today):
 | `f08-embed-viewport` | `Embed` slot as a leaf of given size | - |
 | `f09-composition-stack` | nested `Use` with typed args and child slots, `thing.std` plus a publisher composition | 5 |
 | `f10-hostile` | unknown arm, undeclared `CommandRef`, duplicate id after expansion, unresolved `Use`, schema-mismatched `Bind` | 4, 5, 6 |
-| `f11-deep` | nesting at the 256 bound (decoded on a large-stack thread until CultLib's fix) | - |
+| `f11-deep` | nesting at the 256 bound (decoded on a large-stack thread until Eve's pin of CultLib `bbb98eaf` merges) | - |
 | `f12-text-edge` | bidi, CJK wide characters, combining marks, emoji ZWJ, long wrap | - |
 
 ## 3. The pieces
@@ -252,7 +253,7 @@ die under their own mutation").
 ### Piece 1: contract (packages for TS and C#, and the store check)
 
 Rust (`crates/thing-contract`) landed after two Soul passes; `contract-ts` and
-`contract-cs` are mapped (`thing2:cut_spec:cut-contract-ts.r2`, `-cs.r2`) and have
+`contract-cs` are mapped (`thing2:cut_spec:cut-contract-ts.r3`, `-cs.r3`) and have
 branches (`hands/thing2-contract-ts`, `hands/thing2-contract-cs`) not yet merged.
 This spec adds no contract change.
 
@@ -580,8 +581,10 @@ This spec adds no contract change.
   §3: #194011, #192466), off by default until an assistive-technology signal or an
   explicit toggle, as Flutter does.
 - **11c shell + discovery:** a web app that discovers surfaces through the Verse's
-  discovery owner (map: discovery is not Thing's, `advertisement-owner`) and mounts
-  core; reachable by `thing-mesh`'s transport or a gateway (O4).
+  discovery owner (map: discovery is not Thing's, `advertisement-owner`; until the
+  owner's typed advertisement lands, `thing2:follow_up:discovery-owner-campaign`,
+  through one adapter over today's `gamecult.eve.provider_advertisement.v1`,
+  deleted when it does) and mounts core; reachable by `thing-mesh`'s transport or a gateway (O4).
 - **Invariants:** M8 (no `taffy`/`parley` in the JS package or the wasm host
   glue); the JS host calls only `Core::frame`, passes only the closed
   `InputEvent`s, and draws only the closed commands; the hidden textarea never
@@ -605,16 +608,15 @@ This spec adds no contract change.
 ### Piece 12: thing-mesh (the CultMesh adapters)
 
 - **Owner:** `thing-mesh`: `StatePort` and a discovery client over CultMesh/CultNet
-  and CultCache; the outbound invocation sender; the only crate with a transport
+  and CultCache (the client is a port: Thing's contract has no advertisement of its own, `advertisement-owner`); the outbound invocation sender; the only crate with a transport
   dependency.
 - **Invariants:** a `StatePort` never returns `serde_json::Value` or an untyped
   blob (P3); decode runs through the contract types and refuses on error
   (`Change::Refused`), never a silently-dropped update; subscription uses the mesh's
   own mechanism, never a poll loop (BD9 dies); the sender sets the caller identity
-  from the transport session and has no API to override it; decode happens on a
-  thread with the stack CultLib's decode needs until
-  `cultlib-gaps:follow_up:decode-stack-safety` lands (the hazard is in the
-  contract crate's docs, P20).
+  from the transport session and has no API to override it; decode needs no special thread once Eve pins CultLib `bbb98eaf`, which
+  carries `cultlib-gaps:follow_up:decode-stack-safety` (Fixed); until that pin
+  merges, decode runs on a thread with the stack it needs (P20).
 - **Test:** pipeline smoke: a real CultMesh in-process loopback publishes
   `f01`'s state and a document; core with `thing-mesh` shows it; then a hostile
   record (unknown arm) yields `Change::Refused`; an invocation sent through the
@@ -732,8 +734,9 @@ Each with a recommendation; none blocks cuts 1-8.
   document is Thing Script's one authority, and a `.thingscript` text syntax comes
   later, parsed only by core. Text of the ruling as relayed by Meta's Persona; this
   mind cannot read it. Consequences held in this spec: nothing but the typed
-  document is authoritative; no language package, host or tool parses a text form
-  (packages build the typed document and nothing else); when the text form is cut
+  document is authoritative; no language package or host parses a text form (packages
+  build the typed document and nothing else; tooling reaches the one parser through core, which
+  the question's recommendation expects to expose via wasm); when the text form is cut
   it lands in `thing-core` next to `resolve` and produces a `SurfaceDocument`, so
   `resolve` still sees only the typed document, and its tests are round-trip
   (text to document to text) plus the existing `resolve` suite on the parsed
