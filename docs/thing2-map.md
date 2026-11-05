@@ -473,6 +473,10 @@ code fails it.
 
 ## Cut order (deliverables)
 
+Per-piece contracts, the build graph with sizes, a test per piece and the prior-art
+citations for each choice are in `docs/thing2-build-spec.md`; this list is the
+summary.
+
 0. **`stale-voidbot-cleanup`** (Eve main, any time): spec
    `thing2:cut_spec:cut-stale-voidbot-cleanup.r1`. Owned here by
    `thing:follow_up:stale-voidbot-cleanup-on-main`.
