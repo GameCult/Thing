@@ -322,7 +322,9 @@ This spec adds no contract change.
   `CommandRef` as a warning; drop the placeholder; expand `Use` without pinning the
   composition version.
 - **Deletes/forbidden:** no `kind` string dispatch anywhere (closed enum only); no
-  fallback along a kind path (M4); no expression evaluator.
+  fallback along a kind path (M4); no expression evaluator. No text-syntax parser
+  outside `thing-core` (`thing-script-form`): `resolve` consumes only the typed
+  document; a later `.thingscript` parser is core's and feeds it.
 - **Prior art:** Adaptive Cards separates template expansion from render
   (`adaptivecards-templating` expands a template against data before render)
   **[read, R-K §2]**; Thing's `Use` is the same split without an expression
@@ -724,11 +726,19 @@ Each with a recommendation; none blocks cuts 1-8.
   claim has no table (R-F §2.1) and the Taffy README numbers are layout-only
   (R-F §2.2). Recommendation: cut 6 records the first measured numbers in a
   bench fixture, and budgets are set from them rather than guessed.
-- **O11. Thing Script text syntax.** `thing2:ruling:thing-script-form` decides it;
-  that ruling is not in this mind, so this spec assumes the typed document is the
-  authority under every option, as the map does. If a text form lands, it is a
-  compiler to the typed document (cut after 3), tested by round-tripping through
-  `resolve`.
+- **O11. Thing Script text syntax: closed by ruling, no open question.**
+  `thing2:ruling:thing-script-form` (InForce, ruled 2026-10-10, choice
+  `document-authority-text-later`; operator: "all recommended") says the typed
+  document is Thing Script's one authority, and a `.thingscript` text syntax comes
+  later, parsed only by core. Text of the ruling as relayed by Meta's Persona; this
+  mind cannot read it. Consequences held in this spec: nothing but the typed
+  document is authoritative; no language package, host or tool parses a text form
+  (packages build the typed document and nothing else); when the text form is cut
+  it lands in `thing-core` next to `resolve` and produces a `SurfaceDocument`, so
+  `resolve` still sees only the typed document, and its tests are round-trip
+  (text to document to text) plus the existing `resolve` suite on the parsed
+  output. It has no cut yet and sits after cut 3; the map's cut order is not
+  changed here.
 - **O12. Meta's rule.** This spec reads "prior-art sources cited" as: every
   decision names the sources and a confidence, with [read]/[background] honesty.
   If the rule also fixes a format, a minimum source count or a required venue,
@@ -740,7 +750,7 @@ Each with a recommendation; none blocks cuts 1-8.
 ## 7. Substrate gaps felt writing this spec
 
 - The mind this run could read has none of `thing2:*` (rulings, specs, questions);
-  the spec cites them through the map's prose only. Requirement: the `huginn`
+  the spec cites them through the map's prose only. `thing2:ruling:thing-script-form` is the one exception, quoted in O11 as relayed. Requirement: the `huginn`
   view of the `thing2` campaign for any Mind that is asked to work it.
 - No published golden-command suite exists to copy (D4); the harness is ours to
   build and is itself a cut-1 testkit deliverable.
