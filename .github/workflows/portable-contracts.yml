@@ -16,7 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        # No Windows runner exists: the windows-latest leg runs on workflow_dispatch only (GitHub or a
+        # Windows runner), the ubuntu-latest leg gates push and PR. Windows push/PR triggers return in the PR
+        # that registers a Windows runner.
+        os: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '["windows-latest", "ubuntu-latest"]' || '["ubuntu-latest"]') }}
         package: [eve-contracts, eve-browser-lowering]
 
     steps:
@@ -30,6 +33,14 @@ jobs:
           cache: npm
           cache-dependency-path: packages/${{ matrix.package }}/package-lock.json
 
+      # eve-browser-lowering links eve-contracts as file:../eve-contracts; npm installs none of the
+      # linked package's dependencies, and tsc resolves its declarations from the real path, so
+      # ajv must be installed in eve-contracts itself.
+      - name: Install eve-contracts dependencies
+        if: matrix.package != 'eve-contracts'
+        working-directory: packages/eve-contracts
+        run: npm ci
+
       - name: Install package dependencies
         working-directory: packages/${{ matrix.package }}
         run: npm ci
@@ -37,6 +48,23 @@ jobs:
       - name: Build and test source
         working-directory: packages/${{ matrix.package }}
         run: npm test
+
+      # The forge runner images carry no pwsh; GitHub's Windows and hosted images do.
+      - name: Install PowerShell
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v pwsh >/dev/null; then pwsh -Version; exit 0; fi
+          SUDO=""; [ "$(id -u)" -eq 0 ] || SUDO="sudo"
+          PWSH_VERSION=7.4.6
+          curl -fsSL "https://github.com/PowerShell/PowerShell/releases/download/v${PWSH_VERSION}/powershell-${PWSH_VERSION}-linux-x64.tar.gz" -o "${RUNNER_TEMP:-/tmp}/powershell.tar.gz"
+          $SUDO mkdir -p /opt/microsoft/powershell/7
+          $SUDO tar -xzf "${RUNNER_TEMP:-/tmp}/powershell.tar.gz" -C /opt/microsoft/powershell/7
+          $SUDO chmod +x /opt/microsoft/powershell/7/pwsh
+          $SUDO ln -sf /opt/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
+          echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> "$GITHUB_ENV"
+          DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 pwsh -Version
 
       - name: Reject stale generated output
         shell: pwsh
