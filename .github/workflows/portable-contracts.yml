@@ -33,6 +33,14 @@ jobs:
           cache: npm
           cache-dependency-path: packages/${{ matrix.package }}/package-lock.json
 
+      # eve-browser-lowering links eve-contracts as file:../eve-contracts; npm installs none of the
+      # linked package's dependencies, and tsc resolves its declarations from the real path, so
+      # ajv must be installed in eve-contracts itself.
+      - name: Install eve-contracts dependencies
+        if: matrix.package != 'eve-contracts'
+        working-directory: packages/eve-contracts
+        run: npm ci
+
       - name: Install package dependencies
         working-directory: packages/${{ matrix.package }}
         run: npm ci
