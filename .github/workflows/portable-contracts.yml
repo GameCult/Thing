@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, docker]
         package: [eve-contracts, eve-browser-lowering]
 
     steps:
