@@ -16,7 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, docker]
+        # No Windows runner exists: the windows-latest leg runs on workflow_dispatch only (GitHub or a
+        # Windows runner), the docker leg gates push and PR. Windows push/PR triggers return in the PR
+        # that registers a Windows runner.
+        os: ${{ fromJSON(github.event_name == 'workflow_dispatch' && '["windows-latest", "docker"]' || '["docker"]') }}
         package: [eve-contracts, eve-browser-lowering]
 
     steps:
