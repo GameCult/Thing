@@ -262,7 +262,7 @@ This spec adds no contract change. Rulings that bind the packages:
 - **Unknown union arms** are refused by CultCache in every runtime, the C#
   reference included, and Thing packages carry no check of their own
   (`thing2:ruling:contract-decode-tolerance`; the fix is CultLib's, follow-up
-  `thing2:follow_up:cultcache-union-parity`). The "unknown union arm is refused"
+  `thing2:follow_up:cultcache-union-parity`, resolved in the mind). The "unknown union arm is refused"
   test below therefore exercises CultCache, not package code.
 - **Nil in required slots** is refused by each package: constructors and factories
   reject null, decoding nil into a slot the Rust contract does not make optional
