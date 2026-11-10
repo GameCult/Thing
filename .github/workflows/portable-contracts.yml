@@ -8,6 +8,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  # A newer push or PR update replaces the older run on the same ref; workflow_dispatch runs are never cancelled.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
 jobs:
   contracts-and-browser:
     name: ${{ matrix.os }} ${{ matrix.package }}
