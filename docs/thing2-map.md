@@ -498,7 +498,7 @@ summary.
    (`thing2:verdict:cut-contract-rs.s1`, `.s2`). The siblings are mapped
    against `6ae2da0` and run side by side, touching only their own package and
    one `.gitignore` insertion each, at separate anchors:
-   `thing2:cut_spec:cut-contract-cs.r2` and `thing2:cut_spec:cut-contract-ts.r2`.
+   `thing2:cut_spec:cut-contract-cs.r3` and `thing2:cut_spec:cut-contract-ts.r3`.
    Waiting, one line each:
    - Cross-runtime store check, after both siblings land: the C# package opens
      a store the TS package wrote and the reverse, which proves the catalog

@@ -1,6 +1,7 @@
 # Thing 2.0 build spec
 
-Status: proposal for review (PR), 2026-11-05. Written for Meta's ask t12-m0
+Status: refreshed 2026-11-10 against the thing2 and thing rulings in force in the
+mind (Thing is Persona's stewardship; this spec does not wait on review). Written for Meta's ask t12-m0
 (#cultlib, 2026-11-04) on top of `docs/thing2-target.md` (why, invariants) and
 `docs/thing2-map.md` (body facts P1-P22, model page, consumer contract, authority
 map, cut order). It does not restate them; it adds what the map leaves at
@@ -253,9 +254,25 @@ die under their own mutation").
 ### Piece 1: contract (packages for TS and C#, and the store check)
 
 Rust (`crates/thing-contract`) landed after two Soul passes; `contract-ts` and
-`contract-cs` are mapped (`thing2:cut_spec:cut-contract-ts.r3`, `-cs.r3`) and have
+`contract-cs` are mapped (`thing2:cut_spec:cut-contract-ts.r3`, `-cs.r3`; r2
+is superseded) and have
 branches (`hands/thing2-contract-ts`, `hands/thing2-contract-cs`) not yet merged.
-This spec adds no contract change.
+This spec adds no contract change. Rulings that bind the packages:
+
+- **Unknown union arms** are refused by CultCache in every runtime, the C#
+  reference included, and Thing packages carry no check of their own
+  (`thing2:ruling:contract-decode-tolerance`; the fix is CultLib's, follow-up
+  `thing2:follow_up:cultcache-union-parity`). The "unknown union arm is refused"
+  test below therefore exercises CultCache, not package code.
+- **Nil in required slots** is refused by each package: constructors and factories
+  reject null, decoding nil into a slot the Rust contract does not make optional
+  is a typed refusal (`thing2:ruling:contract-refuses-nil-in-required-slots`,
+  Defaulted). In TS this is a `present(codec)` on every non-Option slot, and
+  results are validated and frozen at one factory (`cut-contract-ts.r3`).
+- **Byte payloads** (`RecordPayload.Bytes`) are a copied read-only view in C#
+  (`ReadOnlyMemory<byte>`); Rust's `Vec<u8>` and the wire are unchanged
+  (`thing2:ruling:payload-bytes-read-only`, Defaulted). The catalog type name for
+  that slot changes with it, which the 1x store check must read from the C# set.
 
 - **Owner:** the contract crate; packages own nothing (map authority).
 - **Test (per package):** the shared golden fixtures decode and re-encode
@@ -497,7 +514,10 @@ This spec adds no contract change.
 
 ### Piece 9: text (9a measure+shape, 9b focus+editing+IME state)
 
-- **Owner:** `thing-core::text` (ruling `thing2-thing-owns-text`).
+- **Owner:** `thing-core::text` (`thing:ruling:thing2-thing-owns-text`, operator:
+  core owns shaping (Parley), editing and IME state, focus and the AccessKit tree;
+  backends only draw and bridge to platform protocols; glyph rasterization stays
+  backend-private and the render-command contract carries shaped glyph runs).
 - **9a In/Out:** string + `TextStyle` + width constraint → `TextLayout` with
   line boxes and glyph runs (Pixels, via Parley) or cell lines (Cells). One
   `Measure` implementation per metrics mode behind the layout `Measure` trait.
@@ -633,8 +653,48 @@ This spec adds no contract change.
 One `cut_spec` per consumer, each carrying its rename (T, E1-E7 in
 `thing-campaign.md`) and deleting its Thing 1 path in the same cut. Order per map
 cut 5 (Odin, VoidBot, Ghostlight+Heimdall, Muninn/sleipnir, weksa, Stonks, Vili,
-Gjallar, StreamPixels, gamecult-ops, CultLib), with cutover shape per the
-`port-cutover` ruling.
+Gjallar, StreamPixels, gamecult-ops, CultLib), with cutover shape per
+`thing2:ruling:port-cutover`: live consumers cut over one at a time, never all at
+once.
+
+Rulings that shape every port:
+
+- **Naming and wire.** The eve-to-thing wire rename is frozen and folded into Thing
+  2.0; no wire, window or prose rename lands apart from a port. Thing 2.0 adopts
+  rename table T and edge table E1-E7 as its naming rule, so surviving kinds are
+  born `gamecult.thing.*` (`thing:ruling:wire-rename-freeze-fold`).
+- **No compatibility ids.** No `CompatibleSchemaIds` on any renamed type. An
+  Eve-typed store is deleted and rebuilt by its daemon, conformance packs are
+  re-exported under thing ids, and a store found to be truth stops its cut as a
+  fork (`thing:ruling:operator-compat-rebuild`). A port therefore carries a
+  rebuild step, not a reader of old ids.
+- **No new Eve surfaces.** Thing, formerly Eve, is deprecated; every new surface
+  waits for Thing 2.0 (`thing2:ruling:surfaces-wait-for-thing2`). Operator
+  dashboards are quarantined (parked tag, removed from main and the build) and
+  rebuilt on Thing 2 by follow-ups, e.g. `thing2:follow_up:ymir-operator-view-on-thing2`,
+  `weksa-`, `mimir-`, `muninn-operator-view-on-thing2`
+  (`thing2:ruling:eve-dashboards-quarantined-2`). Product UIs are decided case by
+  case: `Mimir.EveSensorReceiver` and the Pitch page's visual-novel component are
+  frozen until Thing 2, neither extended nor removed
+  (`thing2:ruling:mimir-sensor-receiver-frozen`, `thing2:ruling:pitch-component-frozen`).
+- **Discovery is not Thing's.** A port reads the provider advertisement through the
+  `thing-mesh` port, not through a Thing-owned kind (`thing2:ruling:advertisement-owner`).
+- **Repo set.** The code home is the Eve repo renamed Thing; Unity and Flutter
+  backends get their own repos only when a live consumer needs one
+  (`thing2:ruling:code-home`). The campaign waits for `cut-campaign-repos`, then
+  target r2 names the 13 repos before the first port
+  (`thing2:ruling:campaign-repo-limit`). The six retired family repos are archived
+  under their Eve names (`thing2:ruling:retired-repo-names`).
+
+**Port-list gaps.** Two consumers are in none of the lists above. (1) gamecult-site
+generates a Thing 1 surface on `gamecult.eve` ids (`gamecult-compound.eve-gui.json`,
+`Pitch.md:15`) and a `repo-doc-tree/eve.json` with dead `.voidbot` links; port it
+to `gamecult.thing.surface.v1` or delete it if nothing renders it, and enter the
+site in the repo set with target r2 (`thing2:follow_up:site-thing1-surface`; the
+component is frozen meanwhile). (2) Brokkr publishes `gamecult.eve.surface.v1` at
+two sites in `brokkr-daemon/src/main.rs:362-368`, and no campaign can list it at
+the 8-repo bound; rename both ids per table T once a campaign lists Brokkr
+(`thing:follow_up:brokkr-wire-unhomed`; no Idunn target runs it, so it waits).
 
 The template (every port cut has the same spec skeleton, so Soul can run the same
 falsifications):
@@ -695,18 +755,24 @@ Each with a recommendation; none blocks cuts 1-8.
   system and Slint web uses femtovg, not Parley. Recommendation: one half-day
   probe (build `thing-core` text module to wasm, shape `f12`) before cut 9a is
   specced; the fallback is browser `Canvas.measureText` behind the `Measure` trait,
-  which weakens "core owns text" for the web only and needs an operator ruling if
-  taken. Needs: the probe.
-- **O2. Glyph rasterization path** (canvas 2D, Slug, Vello family). Operator scope
-  addition in R-T §6. Recommendation: canvas 2D now; revisit after a measured
-  frame budget (O10). Needs: operator word on whether GPU glyphs gate web
-  cutover.
+  which weakens "core owns text" for the web only. `thing:ruling:thing2-thing-owns-text`
+  already puts shaping in core, so taking the fallback contradicts it and needs a
+  new operator ruling. Needs: the probe.
+- **O2. Glyph rasterization path** (canvas 2D, Slug, Vello family). Partly ruled:
+  rasterization is backend-private and the first GPU backend picks Vello or a Slug
+  port by measurement (`thing:ruling:thing2-thing-owns-text`). Still open:
+  Recommendation: canvas 2D now; revisit after a measured frame budget (O10).
+  Needs: operator word on whether GPU glyphs gate web cutover.
 - **O3. The exact command list**, in particular whether `Plot` lowers to
   `Polyline`/`Polygon` in core or becomes an `Embed`. Recommendation: lower in core
   (consumers expect charts; an `Embed` makes every host write one). Needs: review
   of D2 by Meta.
 - **O4. CultMesh/CultNet surface for `thing-mesh` and how a browser reaches it**
-  (direct WebTransport/QUIC, or a gateway). Not read in this pass. Needs: a short
+  (direct WebTransport/QUIC, or a gateway). Not read in this pass. Who owns the
+  provider advertisement is ruled (`thing2:ruling:advertisement-owner`: discovery
+  leaves Thing, its owner is CultMesh or Odin, follow-up
+  `thing2:follow_up:discovery-owner-campaign`); the transport question stays open.
+  Needs: a short
   Eyes pass over `cultmesh-ts`/`cultnet-ts` in CultLib before cut 12 and 11c are
   specced.
 - **O5. Defaults that are guesses:** invocation timeout 15 s, frame budget, scrollbar
@@ -732,8 +798,7 @@ Each with a recommendation; none blocks cuts 1-8.
   `thing2:ruling:thing-script-form` (InForce, ruled 2026-10-10, choice
   `document-authority-text-later`; operator: "all recommended") says the typed
   document is Thing Script's one authority, and a `.thingscript` text syntax comes
-  later, parsed only by core. Text of the ruling as relayed by Meta's Persona; this
-  mind cannot read it. Consequences held in this spec: nothing but the typed
+  later, parsed only by core. Consequences held in this spec: nothing but the typed
   document is authoritative; no language package or host parses a text form (packages
   build the typed document and nothing else; tooling reaches the one parser through core, which
   the question's recommendation expects to expose via wasm); when the text form is cut
@@ -746,14 +811,17 @@ Each with a recommendation; none blocks cuts 1-8.
   decision names the sources and a confidence, with [read]/[background] honesty.
   If the rule also fixes a format, a minimum source count or a required venue,
   the tags above are where to retrofit it.
-- **O13. Where the repo's unmerged contract-ts / contract-cs branches stand.** The
-  branches exist on the forge; this spec assumes the map's description of them
-  and did not re-verify their state beyond the branch heads.
+- **O13. Where the repo's unmerged contract-ts / contract-cs branches stand.**
+  Ruled as far as the mind records: the live specs are `cut-contract-ts.r3` and
+  `-cs.r3`, which wait on contract-cs h2 being admitted, held by Soul and merged
+  by Self. This spec did not re-verify branch heads; that check belongs to the
+  merging Self.
 
 ## 7. Substrate gaps felt writing this spec
 
-- The mind this run could read has none of `thing2:*` (rulings, specs, questions);
-  the spec cites them through the map's prose only. `thing2:ruling:thing-script-form` is the one exception, quoted in O11 as relayed. Requirement: the `huginn`
-  view of the `thing2` campaign for any Mind that is asked to work it.
+- Resolved: the `thing2` and `thing` campaigns are now readable
+  (`huginn rulings thing2 thing`, `huginn view <id>`), and this spec was checked
+  against them on 2026-11-10. Rulings are now cited by id. Remaining gap: the
+  `huginn rulings` header line truncates the choice, so each ruling needs a `view`.
 - No published golden-command suite exists to copy (D4); the harness is ours to
   build and is itself a cut-1 testkit deliverable.
