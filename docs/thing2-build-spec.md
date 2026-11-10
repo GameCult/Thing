@@ -1,8 +1,7 @@
 # Thing 2.0 build spec
 
-Status: refreshed 2026-11-10 against the thing2 and thing rulings in force in the
-mind (Thing is Persona's stewardship; this spec does not wait on review). Written for Meta's ask t12-m0
-(#cultlib, 2026-11-04) on top of `docs/thing2-target.md` (why, invariants) and
+Status: build spec, refreshed 2026-11-10 against the thing2 rulings in force, on
+top of `docs/thing2-target.md` (why, invariants) and
 `docs/thing2-map.md` (body facts P1-P22, model page, consumer contract, authority
 map, cut order). It does not restate them; it adds what the map leaves at
 deliverable level: **the pieces, each piece's contract, the build order, and the
@@ -20,8 +19,8 @@ R-F = `thing2-foundation-prior-art.md`, R-T = `thing2-text-input-a11y-prior-art.
 R-K = `thing2-contract-forks-prior-art.md`, R-C = `thing2-consumer-census.md`);
 **[background]** = prior knowledge, not re-fetched for this spec, and the first
 thing to verify when its piece is mapped into a `cut_spec`. Confidence is stated
-per decision. Meta's rule, as passed to this run, is "prior-art sources cited";
-if the rule has more to it (format, depth, a required venue) the Open list asks.
+per decision. The standard is "prior-art sources cited"; O12 asks whether it
+also fixes a format.
 
 ## 0. The machine in one page
 
@@ -679,6 +678,9 @@ Rulings that shape every port:
   (`thing2:ruling:mimir-sensor-receiver-frozen`, `thing2:ruling:pitch-component-frozen`).
 - **Discovery is not Thing's.** A port reads the provider advertisement through the
   `thing-mesh` port, not through a Thing-owned kind (`thing2:ruling:advertisement-owner`).
+  Until the owner lands (`thing2:follow_up:discovery-owner-campaign`), one adapter
+  over today's `gamecult.eve.provider_advertisement.v1` serves the port and is
+  deleted when the owner's typed advertisement arrives.
 - **Repo set.** The code home is the Eve repo renamed Thing; Unity and Flutter
   backends get their own repos only when a live consumer needs one
   (`thing2:ruling:code-home`). The campaign waits for `cut-campaign-repos`, then
@@ -686,15 +688,11 @@ Rulings that shape every port:
   (`thing2:ruling:campaign-repo-limit`). The six retired family repos are archived
   under their Eve names (`thing2:ruling:retired-repo-names`).
 
-**Port-list gaps.** Two consumers are in none of the lists above. (1) gamecult-site
-generates a Thing 1 surface on `gamecult.eve` ids (`gamecult-compound.eve-gui.json`,
-`Pitch.md:15`) and a `repo-doc-tree/eve.json` with dead `.voidbot` links; port it
-to `gamecult.thing.surface.v1` or delete it if nothing renders it, and enter the
-site in the repo set with target r2 (`thing2:follow_up:site-thing1-surface`; the
-component is frozen meanwhile). (2) Brokkr publishes `gamecult.eve.surface.v1` at
-two sites in `brokkr-daemon/src/main.rs:362-368`, and no campaign can list it at
-the 8-repo bound; rename both ids per table T once a campaign lists Brokkr
-(`thing:follow_up:brokkr-wire-unhomed`; no Idunn target runs it, so it waits).
+**Port-list gap.** gamecult-site's Thing 1 surface is tracked in
+`void-body:follow_up:site-eve-present-tense` (Void's mind; folded there by
+`thing2:resolution:follow_up.site-thing1-surface.n1`), and its Pitch component is
+frozen until Thing 2 (`thing2:ruling:pitch-component-frozen`). The repo count
+stays 13.
 
 The template (every port cut has the same spec skeleton, so Soul can run the same
 falsifications):
@@ -765,8 +763,8 @@ Each with a recommendation; none blocks cuts 1-8.
   Needs: operator word on whether GPU glyphs gate web cutover.
 - **O3. The exact command list**, in particular whether `Plot` lowers to
   `Polyline`/`Polygon` in core or becomes an `Embed`. Recommendation: lower in core
-  (consumers expect charts; an `Embed` makes every host write one). Needs: review
-  of D2 by Meta.
+  (consumers expect charts; an `Embed` makes every host write one). Needs: a
+  decision on D2 from the spec's reviewer.
 - **O4. CultMesh/CultNet surface for `thing-mesh` and how a browser reaches it**
   (direct WebTransport/QUIC, or a gateway). Not read in this pass. Who owns the
   provider advertisement is ruled (`thing2:ruling:advertisement-owner`: discovery
@@ -807,10 +805,10 @@ Each with a recommendation; none blocks cuts 1-8.
   (text to document to text) plus the existing `resolve` suite on the parsed
   output. It has no cut yet and sits after cut 3; the map's cut order is not
   changed here.
-- **O12. Meta's rule.** This spec reads "prior-art sources cited" as: every
+- **O12. Prior-art standard.** This spec reads "prior-art sources cited" as: every
   decision names the sources and a confidence, with [read]/[background] honesty.
-  If the rule also fixes a format, a minimum source count or a required venue,
-  the tags above are where to retrofit it.
+  Open: whether the standard also fixes a format, a minimum source count or a
+  required venue; the tags above are where to retrofit it.
 - **O13. Where the repo's unmerged contract-ts / contract-cs branches stand.**
   Ruled as far as the mind records: the live specs are `cut-contract-ts.r3` and
   `-cs.r3`, which wait on contract-cs h2 being admitted, held by Soul and merged
